@@ -1,52 +1,68 @@
-Real-Time Code Editor
+# Real-Time Code Editor
 
-A full-stack, real-time collaborative code editor inspired by modern cloud-based coding platforms. This project demonstrates how multiple users can write and edit code simultaneously while learning Docker, scalable architecture, Redis, WebSockets, and AWS deployment.
+> A scalable real-time collaborative code editor built with React, Monaco Editor, Node.js, Socket.io, Docker, Redis, and AWS ECS.
 
-Features
-Real-time collaborative code editing
-Multi-user room support
-Monaco Editor integration
-Live synchronization using Socket.io
-Redis-based scaling for multiple server instances
-Dockerized frontend and backend
-Production deployment using AWS ECS
-Microservice-ready architecture
-Easy local development workflow
-Tech Stack
-Frontend
-React.js
-Monaco Editor
-Socket.io Client
-Tailwind CSS (optional)
-Backend
-Node.js
-Express.js
-Socket.io
-Redis
-DevOps & Deployment
-Docker
-Docker Compose
-AWS ECS
-Amazon ECR
-What You Will Learn
+Users can join a shared room and edit code together in real time while learning how modern applications are containerized, scaled, and deployed.
 
-By building this project, you will understand:
+---
 
-What Docker is and why developers use it
-Containers vs Virtual Machines
-How Docker Images and Dockerfiles work
-Writing Dockerfiles using:
-FROM
-WORKDIR
-COPY
-RUN
-CMD
-Building and running containers
-Connecting multiple containers with Docker Compose
-Using Redis to scale WebSocket applications
-Deploying containerized applications to AWS ECS
-How real-world collaborative systems support multiple users simultaneously
-Project Architecture
+## 🚀 Features
+
+* Real-time collaborative code editing
+* Multi-user room support
+* Monaco Editor integration
+* Live synchronization using Socket.io
+* Redis-based scaling for multiple backend instances
+* Dockerized frontend and backend
+* AWS ECS deployment
+* Microservice-ready architecture
+* Easy local development setup
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+
+* React.js
+* Monaco Editor
+* Socket.io Client
+* Tailwind CSS
+
+### Backend
+
+* Node.js
+* Express.js
+* Socket.io
+* Redis
+
+### DevOps & Deployment
+
+* Docker
+* Docker Compose
+* AWS ECS
+* Amazon ECR
+
+---
+
+## 📚 What You Will Learn
+
+This project helps you understand:
+
+* What Docker is and why developers use it
+* Difference between Containers and Virtual Machines
+* What Docker Images and Dockerfiles are
+* How to write your first Dockerfile
+* How to build and run containers
+* How Redis helps scale WebSocket applications
+* How to deploy containerized apps to AWS ECS
+* How real-world systems support multiple users simultaneously
+
+---
+
+## 🏗 Project Architecture
+
+```text
 User 1 ─┐
         ├── React Frontend ──> Socket.io ──> Express Backend
 User 2 ─┘                                 │
@@ -58,7 +74,13 @@ User 2 ─┘                                 │
                                           │
                                           ▼
                                       AWS ECS
-Folder Structure
+```
+
+---
+
+## 📁 Folder Structure
+
+```text
 realtime-code-editor/
 │
 ├── client/                 # React + Monaco frontend
@@ -72,74 +94,111 @@ realtime-code-editor/
 │   └── package.json
 │
 ├── docker-compose.yml
-├── README.md
-└── .env
-Getting Started
-1. Clone the Repository
+├── .env
+└── README.md
+```
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/your-username/realtime-code-editor.git
 cd realtime-code-editor
-2. Install Dependencies
-Frontend
+```
+
+### 2. Install Dependencies
+
+#### Frontend
+
+```bash
 cd client
 npm install
-Backend
+```
+
+#### Backend
+
+```bash
 cd ../server
 npm install
-Running Locally Without Docker
-Start Backend
+```
+
+---
+
+## ▶️ Run Locally Without Docker
+
+### Start Backend
+
+```bash
 cd server
 npm run dev
-Start Frontend
+```
+
+### Start Frontend
+
+```bash
 cd client
 npm start
+```
 
-Frontend runs on:
+Frontend:
 
+```text
 http://localhost:3000
+```
 
-Backend runs on:
+Backend:
 
+```text
 http://localhost:5000
-Docker Setup
-Backend Dockerfile
+```
+
+---
+
+## 🐳 Docker Setup
+
+### Backend Dockerfile
+
+```dockerfile
 FROM node:20
 
-
 WORKDIR /app
-
 
 COPY package*.json ./
 RUN npm install
 
-
 COPY . .
-
 
 EXPOSE 5000
 
-
 CMD ["npm", "start"]
-Frontend Dockerfile
+```
+
+### Frontend Dockerfile
+
+```dockerfile
 FROM node:20
 
-
 WORKDIR /app
-
 
 COPY package*.json ./
 RUN npm install
 
-
 COPY . .
-
 
 EXPOSE 3000
 
-
 CMD ["npm", "start"]
-Docker Compose
-version: '3.8'
+```
 
+---
+
+## 🐙 Docker Compose
+
+```yaml
+version: '3.8'
 
 services:
   client:
@@ -149,7 +208,6 @@ services:
     depends_on:
       - server
 
-
   server:
     build: ./server
     ports:
@@ -157,113 +215,138 @@ services:
     depends_on:
       - redis
 
-
   redis:
     image: redis:7
     ports:
       - "6379:6379"
+```
 
-Run the full application:
+Run everything:
 
+```bash
 docker-compose up --build
-Redis + Socket.io Scaling
+```
 
-When your backend runs on multiple containers or servers, WebSocket events from one instance may not automatically reach users connected to another instance.
+---
+
+## 🔄 Redis + Socket.io Scaling
+
+When your backend is running on multiple containers or servers, WebSocket events from one server will not automatically reach users connected to another server.
 
 Redis solves this problem by acting as a shared message broker.
 
-Example:
-
+```text
 User A connected to Server 1
 User B connected to Server 2
 
-
 Without Redis:
-- User B does not receive User A's changes
-
+User B does not receive User A's updates.
 
 With Redis:
-- Server 1 sends the update to Redis
-- Redis forwards it to Server 2
-- User B instantly sees the changes
+Server 1 sends the update to Redis.
+Redis forwards the update to Server 2.
+User B instantly sees the changes.
+```
 
-Example Redis adapter setup:
+Example setup:
 
+```js
 const { createAdapter } = require('@socket.io/redis-adapter');
 const { createClient } = require('redis');
-
 
 const pubClient = createClient({ url: process.env.REDIS_URL });
 const subClient = pubClient.duplicate();
 
-
 await pubClient.connect();
 await subClient.connect();
 
-
 io.adapter(createAdapter(pubClient, subClient));
-Deploying to AWS ECS
-Step 1: Build Docker Images
+```
+
+---
+
+## ☁️ Deploying to AWS ECS
+
+### Step 1: Build Docker Images
+
+```bash
 docker build -t realtime-editor-client ./client
 docker build -t realtime-editor-server ./server
-Step 2: Push Images to Amazon ECR
+```
+
+### Step 2: Push Images to Amazon ECR
+
+```bash
 aws ecr create-repository --repository-name realtime-editor-client
 aws ecr create-repository --repository-name realtime-editor-server
+```
 
-Tag and push:
-
+```bash
 docker tag realtime-editor-client:latest <your-ecr-url>/realtime-editor-client
 docker push <your-ecr-url>/realtime-editor-client
 
-
 docker tag realtime-editor-server:latest <your-ecr-url>/realtime-editor-server
 docker push <your-ecr-url>/realtime-editor-server
-Step 3: Create ECS Task Definition
+```
+
+### Step 3: Create ECS Task Definition
 
 Include:
 
-Frontend container
-Backend container
-Environment variables
-CPU / Memory allocation
-Port mapping
-Step 4: Run ECS Service
+* Frontend container
+* Backend container
+* CPU and memory allocation
+* Port mapping
+* Environment variables
 
-Deploy the task definition into an ECS cluster and enable auto-scaling.
+### Step 4: Deploy the ECS Service
 
 Recommended setup:
 
-ECS Fargate
-Application Load Balancer
-Redis via Amazon ElastiCache
-Auto Scaling enabled
-Environment Variables
+* ECS Fargate
+* Application Load Balancer
+* Redis using Amazon ElastiCache
+* Auto Scaling enabled
+
+---
+
+## 🔐 Environment Variables
+
+```env
 PORT=5000
 CLIENT_URL=http://localhost:3000
 REDIS_URL=redis://redis:6379
-Future Improvements
-Code execution using Docker sandboxing
-File explorer and multi-file editing
-Authentication with JWT / OAuth
-Persistent rooms and saved code
-Syntax highlighting for more languages
-Cursor tracking for each user
-Video / voice collaboration
-Kubernetes deployment
-Why This Project Matters
+```
 
-This project is more than just a code editor.
+---
 
-It teaches the same technologies used in modern production systems:
+## 🚧 Future Improvements
 
-Real-time collaboration like Google Docs
-Containerized services like modern startups
-Scalable WebSocket architecture
-Cloud deployment on AWS
-Microservice communication using Redis
+* Run code inside secure Docker sandboxes
+* Multi-file editing support
+* Authentication using JWT or OAuth
+* Save rooms and code history
+* Cursor tracking for each user
+* Voice and video collaboration
+* Kubernetes deployment
 
-If you are learning full-stack development and DevOps, this project is a great portfolio piece because it combines frontend, backend, Docker, Redis, system design, and cloud deployment into one real-world application.
+---
 
-License
+## ⭐ Why This Project Matters
+
+This project combines:
+
+* Full-stack development
+* Real-time systems
+* Docker and containerization
+* Redis and scalable WebSockets
+* AWS cloud deployment
+* System design and microservices
+
+It is a strong portfolio project for developers who want to learn both development and DevOps.
+
+---
+
+## 📄 License
 
 MIT License
