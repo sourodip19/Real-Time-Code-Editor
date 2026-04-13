@@ -2,7 +2,7 @@ import "./App.css";
 import { Editor } from "@monaco-editor/react";
 import * as Y from "yjs";
 import { SocketIOProvider } from "y-socket.io";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMemo } from "react";
 import { MonacoBinding } from "y-monaco";
 
@@ -13,23 +13,51 @@ function App() {
   const [username, setUsername] = useState(() => {
     return new URLSearchParams(window.location.search).get("username") || "";
   });
+  const [userslist, setUserslist] = useState([]);
   const handleMount = (editor) => {
     editorRef.current = editor;
-    const provider = new SocketIOProvider(
-      "http://localhost:3000",
-      "monaco",
-      ydoc,
-      {
-        autoConnect: true,
-      },
-    );
-    const monacoBinding = new MonacoBinding(
-      yText,
-      editorRef.current.getModel(),
-      new Set([editorRef.current]),
-      provider.awareness,
-    );
   };
+  useEffect(() => {
+    console.log(username);
+
+    if (username) {
+      const provider = new SocketIOProvider("/", "monaco", ydoc, {
+        autoConnect: true,
+      });
+
+      provider.awareness.setLocalStateField("user", { username });
+
+      const states = Array.from(provider.awareness.getStates().values());
+
+      console.log(states);
+
+      setUsers(
+        states
+          .filter((state) => state.user && state.user.username)
+          .map((state) => state.user),
+      );
+
+      provider.awareness.on("change", () => {
+        const states = Array.from(provider.awareness.getStates().values());
+        setUsers(
+          states
+            .filter((state) => state.user && state.user.username)
+            .map((state) => state.user),
+        );
+      });
+
+      function handleBeforeUnload() {
+        provider.awareness.setLocalStateField("user", null);
+      }
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        provider.disconnect();
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [username]);
 
   const handleJoin = (e) => {
     e.preventDefault();
